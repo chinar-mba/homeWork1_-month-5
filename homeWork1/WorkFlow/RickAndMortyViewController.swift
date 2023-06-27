@@ -40,38 +40,20 @@ class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
         collectionView.snp.makeConstraints { $0.edges.equalToSuperview() }
     }
     
-//    private func fetchCharacters() {
-//        Task {
-//            do {
-//                characters = try await networkService.fetchCharacter()
-//                DispatchQueue.main.async {
-//                    self.collectionView.reloadData()
-//                }
-//            } catch {
-//                print(error)
-//
-//            }
-//        }
-//    }
-//}
     private func fetchCharacters() {
-        networkService.fetchCharacters { [weak self] result in
-            guard let self else {
-                return
-            }
-            switch result {
-            case .success(let model):
+        Task {
+            do {
+                characters = try await networkService.fetchCharacter()
                 DispatchQueue.main.async {
-                    self.characters = model
                     self.collectionView.reloadData()
                 }
-            case .failure(let error):
-                print(error.localizedDescription)
+            } catch {
+                print(error)
             }
         }
     }
 }
-        
+
 extension RickAndMortyViewController: UICollectionViewDataSource {
     func collectionView(
         _ collectionView: UICollectionView,
