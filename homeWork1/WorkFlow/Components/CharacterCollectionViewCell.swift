@@ -10,8 +10,6 @@ import SnapKit
 
 class CharacterCollectionViewCell: UICollectionViewCell {
     
-
-    
     static let reuseID = String(describing: CharacterCollectionViewCell.self)
     
     private lazy var nameLabel = UILabel()

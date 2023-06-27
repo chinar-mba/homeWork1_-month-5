@@ -26,7 +26,18 @@ class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
         return view
     }()
     
-    private let networkService = NetworkService()
+    private let viewModel: CharactersViewModel
+    
+    init() {
+        viewModel = CharactersViewModel()
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        viewModel = CharactersViewModel()
+        super.init(nibName: nil, bundle: nil)
+    }
+    
     var characters: [Character] = []
     
     override func viewDidLoad() {
@@ -43,7 +54,7 @@ class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
     private func fetchCharacters() {
         Task {
             do {
-                characters = try await networkService.fetchCharacter()
+                characters = try await viewModel.fetchCharacters()
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
                 }
