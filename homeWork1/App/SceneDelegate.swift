@@ -17,13 +17,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        window = UIWindow(windowScene: windowScene)
-        
-        let rickAndMortyViewController = RickAndMortyViewController()
-             let navigationController = UINavigationController(rootViewController: rickAndMortyViewController)
-             navigationController.navigationBar.prefersLargeTitles = true
-             window?.rootViewController = navigationController
-             window?.makeKeyAndVisible()
+        let window = UIWindow(windowScene: windowScene)
+        let vc = SplashViewController()
+        let navController = UINavigationController(rootViewController: vc)
+        window.rootViewController = navController
+        window.makeKeyAndVisible()
+        self.window = window
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

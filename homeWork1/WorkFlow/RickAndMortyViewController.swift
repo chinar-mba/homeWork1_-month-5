@@ -7,7 +7,11 @@
 
 import UIKit
 
-class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
+class RickAndMortyViewController: UIViewController {
+    
+    private let refreshControl = UIRefreshControl()
+    
+    let keyChainService = KeyChainService()
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -38,12 +42,40 @@ class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
         super.init(nibName: nil, bundle: nil)
     }
     
-    var characters: [Character] = []
+    private var characters: [Character] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setup()
         fetchCharacters()
+        
+        // for homework note make a 2 screen for authorization
+        viewModel.signIn(with: "996709055845") { result in
+            if case .success(let success) = result {
+                // self.viewModel.signInVerificationCode(with: <#T##String#>, completion: <#T##<<error type>>#>) how to make it 1:44
+                refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+            }
+        }
+        
+        
+        UserDefaultService.shared.save("White", forKey: .color)
+        UserDefaultService.shared.save("Black", forKey: .color)
+        UserDefaultService.shared.remove(forKey: .color)
+        print(UserDefaultService.shared.string(forKey: .color))
+        
+        let serviceName = "MyAppSavingPassword"
+        let accountName = "user100"
+        let password = "excellentpassword"
+        
+        print(keyChainService.addPassword(service: serviceName, account: accountName, password: password))
+        
+        if let readPassword = keyChainService.readPassword(service: serviceName, account: accountName) {
+            print("Your password is: \(readPassword)")
+        } else {
+            print("Password not found")
+        }
+        let newPassword = "user500"
+        print(keyChainService.updatePassword(service: serviceName, account: accountName, newPassword: newPassword))
     }
     
     private func setup() {
@@ -63,9 +95,26 @@ class RickAndMortyViewController: UIViewController, UICollectionViewDelegate {
             }
         }
     }
+    
+    @objc private func refresData() {
+        viewModel.didFinishFetching = { [weak self] in
+            DispatchQueue.main.async {
+                self?.refreshControl.endRefreshing()
+                self?.collectionView.reloadData()
+            }
+        }
+    }
 }
 
-extension RickAndMortyViewController: UICollectionViewDataSource {
+private func fetchCharactersFromFirestore() {
+    FirestoreManager.shared.readData(with: .character) { result in
+        let characters = SplashUtility.mapData(data: model)
+        self.characters.append(contentsOf: characters)
+        self.collectionView.reloadData()
+    }
+}
+
+extension RickAndMortyViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(
         _ collectionView: UICollectionView,
         numberOfItemsInSection section: Int
@@ -83,6 +132,7 @@ extension RickAndMortyViewController: UICollectionViewDataSource {
         ) as! CharacterCollectionViewCell
         let model = characters[indexPath.item]
         cell.display(item: model)
+        collectionView.refreshControl = refreshControl
         return cell
     }
     
