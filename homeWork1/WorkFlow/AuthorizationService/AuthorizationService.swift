@@ -6,24 +6,23 @@
 //
 
 import Foundation
-//import FirebaseAuth
+import FirebaseAuth
 
 class BaseAuthService {
     
     private let keychain = KeyChainService.shared
     
-    private func saveSession() {
-        let minutesLater = Calender.current.date(byAdding: .second, value: 10, to: Date())!
-        let encoder = JSONDecoder()
-        encoder.dataEncodingStrategy = .secondsSince1970
+    func saveSession() {
+        let minutesLater = Calendar.current.date(byAdding: .second, value: 10, to: Date())!
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
         let data = try! encoder.encode(minutesLater)
         do {
-            try self.keychain.save("Authorization", forKey: "UserSession")
+            try self.keychain.save(service: "Authorization", account: "UserSession", data: data)
         } catch {
             print(error.localizedDescription)
         }
     }
-    
 }
 
 class AuthorizationService: BaseAuthService {
@@ -32,7 +31,7 @@ class AuthorizationService: BaseAuthService {
     
     func signIn(with phoneNumber: String, completion: @escaping (Result<Void, Error>) -> Void) {
         PhoneAuthProvider.provider()
-            .verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
+                    .verifyPhoneNumber(phoneNumber, uiDelegate: nil) { verificationID, error in
                 if let error = error {
                     print(error)
                     completion(.failure(error))
@@ -40,10 +39,10 @@ class AuthorizationService: BaseAuthService {
                 let data = Data((verificationID ?? "") .utf8)
                 
                 do {
-                    try self.keychain.addPassword(
+                    try self.keychain.save(
                         service: "Authentification",
                         account: "PhoneNumber",
-                        password: data
+                        data: data
                     )
                 } catch {
                     print(error.localizedDescription)
@@ -53,7 +52,7 @@ class AuthorizationService: BaseAuthService {
     }
     
     func signInVerificationCode(with verificationCode: String, completion: @escaping (Result<User, Error>) -> Void) {
-        let data = keychain.readPassword(service: "Authentification", account: "PhoneNumber")
+        let data = keychain.read(service: "Authentification", account: "PhoneNumber")
         let verificationID = String(data: data!, encoding: .utf8)!
         let credential = PhoneAuthProvider.provider().credential(
             withVerificationID: verificationID,
@@ -75,4 +74,33 @@ class AuthorizationService: BaseAuthService {
     }
 
 
+}
+
+class EmailAuthorization: BaseAuthService {
+    func signInEmail(email: String, password: String, completion: @escaping(Result<Void, Error>) -> Void) {
+        Auth.auth().signIn(withEmail: email, password: password) { authResult, error in
+            if let error = error {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+                super.saveSession()
+            }
+        }
+        
+    }
+    
+    
+    func signUpEmail(email: String, password: String, completion: @escaping(Result<Void, Error>) -> Void) {
+        Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
+            if let error = error {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            } else {
+                completion(.success(()))
+                super.saveSession()
+            }
+        }
+        
+    }
 }

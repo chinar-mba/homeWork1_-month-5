@@ -11,7 +11,7 @@ import FirebaseFirestore
 class FirestoreManager {
     
     enum Collections: String {
-        case Character
+        case character
         case book
     }
     

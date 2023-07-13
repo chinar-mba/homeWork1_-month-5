@@ -10,8 +10,12 @@ import FirebaseAuth
 
 class AuthorizationViewModel {
     private let authService = AuthorizationService()
+    private let authEmailService = EmailAuthorization()
     
-    func signIn(with phoneNumber: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signIn(
+        with phoneNumber: String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
         authService.signIn(with: phoneNumber, completion: completion)
     }
     
@@ -21,5 +25,25 @@ class AuthorizationViewModel {
     ) {
         authService.signInVerificationCode(with: verificationCode, completion: completion)
         
+    }
+    
+    func signInEmail(
+        email : String,
+        password : String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        authEmailService.signInEmail(
+            email: email,
+            password: password,
+            completion: completion
+        )
+    }
+    
+    func signUpEmail(
+        email : String,
+        password : String,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        authEmailService.signUpEmail(email: email, password: password, completion: completion)
     }
 }

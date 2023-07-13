@@ -13,7 +13,7 @@ class SplashViewController: UIViewController {
     private var keychain = KeyChainService.shared
     private let encoder = JSONEncoder()
 
-    override func viewDidLoad(_animated: Bool) {
+    override func viewDidLoad() {
         super.viewDidLoad()
         
         let character = Character(
@@ -29,7 +29,6 @@ class SplashViewController: UIViewController {
             with: .character,
             data: [
             "name": character.name,
-            "name": character.status,
             "status": character.status,
             "species": character.species,
             "type": character.type,
@@ -39,11 +38,11 @@ class SplashViewController: UIViewController {
         )
         
         FirestoreManager.shared.addData(
-            with: character,
+            with: .character,
             data: SplashUtility.mapData(character: character)
         ) 
      
-        FirestoreManager.shared.readData(with: character) { result in
+        FirestoreManager.shared.readData(with: .character) { result in
             if case .success(let model) = result {
                 let characters = SplashUtility.mapData(data: model)
             }  
@@ -52,8 +51,8 @@ class SplashViewController: UIViewController {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         if
-            let data = try! keychain.readPassword(service: "Authorization", account: "UserSession"),
-            let date = try? decoder.decode(Data.self, from: data),
+            let data = try! keychain.read(service: "Authorization", account: "UserSession"),
+            let date = try? decoder.decode(Date.self, from: data),
             date > Date() {
             print(data)
             print(Date())
@@ -62,10 +61,11 @@ class SplashViewController: UIViewController {
             nav.modalPresentationStyle = .fullScreen
             self.present(nav, animated: false)
         } else {
-            let vc = AuthorizationViewController() //needs to check
-            let nav = UINavigationController(rootViewController: vc)
-            nav.modalPresentationStyle = .fullScreen
-            self.present(vc, animated: false)
+            let vc = LoginViewController() //needs to check
+//            let nav = UINavigationController(rootViewController: vc)
+//            nav.modalPresentationStyle = .fullScreen
+//            self.present(vc, animated: false)
+            navigationController?.pushViewController(vc, animated: false)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.authentificated = true
